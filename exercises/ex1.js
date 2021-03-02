@@ -5,6 +5,7 @@
 var util = require("util");
 var path = require("path");
 var fs = require("fs");
+var Transform = require("stream").Transform;
 
 var getStdin = require("get-stdin");
 
@@ -22,27 +23,42 @@ if (process.env.HELLO) {
 if (args.help) {
   printHelp();
 } else if (args.in || args._.includes("-")) {
-  getStdin().then(processFile).catch(error);
+  processFile(process.stdin);
+  // getStdin().then(processFile).catch(error);
 } else if (args.file) {
-  fs.readFile(
-    path.join(BASE_PATH, args.file),
-    function onContents(err, contents) {
-      if (err) {
-        error(err.toString());
-      } else {
-        processFile(contents.toString());
-      }
-    }
-  );
+  let stream = fs.createReadStream(path.join(BASE_PATH, args.file));
+  processFile(stream);
+
+  // fs.readFile(
+  //   path.join(BASE_PATH, args.file),
+  //   function onContents(err, contents) {
+  //     if (err) {
+  //       error(err.toString());
+  //     } else {
+  //       processFile(contents.toString());
+  //     }
+  //   }
+  // );
 } else {
   error("Incorrect Usage", true);
 }
 
 //***************************
 
-function processFile(contents) {
-  contents = contents.toUpperCase();
-  process.stdout.write(contents);
+function processFile(inStream) {
+  let outStream = inStream;
+
+  let upperStream = new Transform({
+    transform(chunk, enc, cb) {
+      this.push(chunk.toString().toUpperCase());
+      cb();
+    },
+  });
+
+  outStream = outStream.pipe(upperStream);
+
+  let targetStream = process.stdout;
+  outStream.pipe(targetStream);
 }
 
 function error(msg, includeHelp = false) {
