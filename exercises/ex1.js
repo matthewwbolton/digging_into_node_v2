@@ -6,15 +6,20 @@ var util = require("util");
 var path = require("path");
 var fs = require("fs");
 var Transform = require("stream").Transform;
+// console.log(Transform.toString());
 
 var getStdin = require("get-stdin");
 
 var args = require("minimist")(process.argv.slice(2), {
-  boolean: ["help", "in"],
+  boolean: ["help", "in", "out"],
   string: ["file"],
 });
 
+// console.log("ARGS", args);
+
 var BASE_PATH = path.resolve(process.env.BASE_PATH || __dirname);
+
+let OUTFILE = path.join(BASE_PATH, "out.txt");
 
 if (process.env.HELLO) {
   console.log(process.env.HELLO);
@@ -57,7 +62,13 @@ function processFile(inStream) {
 
   outStream = outStream.pipe(upperStream);
 
-  let targetStream = process.stdout;
+  let targetStream;
+
+  if (args.out) {
+    targetStream = process.stdout;
+  } else {
+    targetStream = fs.createWriteStream(OUTFILE);
+  }
   outStream.pipe(targetStream);
 }
 
@@ -76,5 +87,6 @@ function printHelp() {
   console.log("--help                 print this help");
   console.log("--file={FILENAME}      process the file");
   console.log("--in                   process stdin");
+  console.log("--out                  print to stdout");
   console.log("");
 }
