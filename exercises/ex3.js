@@ -8,6 +8,7 @@ var fs = require("fs");
 var Transform = require("stream").Transform;
 // console.log(Transform.toString());
 let zlib = require("zlib");
+let CAF = require("caf");
 
 var getStdin = require("get-stdin");
 
@@ -17,6 +18,12 @@ var args = require("minimist")(process.argv.slice(2), {
 });
 
 // console.log("ARGS", args);
+
+function streamComplete(stream) {
+  return new Promise(function c(resolve) {
+    stream.on("end", resolve);
+  });
+}
 
 var BASE_PATH = path.resolve(process.env.BASE_PATH || __dirname);
 
@@ -29,11 +36,17 @@ if (process.env.HELLO) {
 if (args.help) {
   printHelp();
 } else if (args.in || args._.includes("-")) {
-  processFile(process.stdin);
+  processFile(process.stdin)
+    .then(() => console.log("COMPLETE from stdin"))
+    .catch(error);
   // getStdin().then(processFile).catch(error);
 } else if (args.file) {
   let stream = fs.createReadStream(path.join(BASE_PATH, args.file));
-  processFile(stream);
+  processFile(stream)
+    .then(function () {
+      console.log("COMPLETE!");
+    })
+    .catch(error);
 
   // fs.readFile(
   //   path.join(BASE_PATH, args.file),
@@ -51,7 +64,7 @@ if (args.help) {
 
 //***************************
 
-function processFile(inStream) {
+async function processFile(inStream) {
   let outStream = inStream;
 
   if (args.uncompress) {
@@ -81,7 +94,10 @@ function processFile(inStream) {
   } else {
     targetStream = fs.createWriteStream(OUTFILE);
   }
+
   outStream.pipe(targetStream);
+
+  await streamComplete(outStream);
 }
 
 function error(msg, includeHelp = false) {
@@ -93,8 +109,8 @@ function error(msg, includeHelp = false) {
 }
 
 function printHelp() {
-  console.log("ex1 usage: ");
-  console.log(" ex1.js --file={FILENAME}");
+  console.log("ex3 usage: ");
+  console.log(" ex3.js --file={FILENAME}");
   console.log("");
   console.log("--help                 print this help");
   console.log("--file={FILENAME}      process the file");
