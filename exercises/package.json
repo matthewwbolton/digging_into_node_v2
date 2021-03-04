@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "axios": "^0.21.1",
+    "express": "^4.17.1",
     "node-static-alias": "^1.1.2",
     "sqlite3": "^5.0.2"
   },
@@ -8,6 +9,6 @@
     "nodemon": "^2.0.7"
   },
   "scripts": {
-    "dev": "nodemon ./ex5.js"
+    "dev": "nodemon ./ex6.js"
   }
 }
