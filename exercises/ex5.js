@@ -75,6 +75,7 @@ function main() {
 
 async function handleRequest(req, res) {
   if (req.url == "/get-records") {
+    await delay(1000);
     let records = await getAllRecords();
     res.writeHead(200, {
       "Content-Type": "application/json",
