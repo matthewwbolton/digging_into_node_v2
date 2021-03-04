@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "node-static-alias": "^1.1.2",
     "sqlite3": "^5.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7"
+  },
+  "scripts": {
+    "dev": "nodemon ./ex5.js"
   }
 }

@@ -4,16 +4,16 @@
 
 var util = require("util");
 var path = require("path");
-// var http = require("http");
+var http = require("http");
 
 var sqlite3 = require("sqlite3");
-// var staticAlias = require("node-static-alias");
-
+var staticAlias = require("node-static-alias");
+const { rawListeners } = require("process");
 
 // ************************************
 
-const DB_PATH = path.join(__dirname,"my.db");
-const WEB_PATH = path.join(__dirname,"web");
+const DB_PATH = path.join(__dirname, "my.db");
+const WEB_PATH = path.join(__dirname, "web");
 const HTTP_PORT = 8039;
 
 var delay = util.promisify(setTimeout);
@@ -22,17 +22,17 @@ var delay = util.promisify(setTimeout);
 //   (comment out if sqlite3 not working for you)
 var myDB = new sqlite3.Database(DB_PATH);
 var SQL3 = {
-	run(...args) {
-		return new Promise(function c(resolve,reject){
-			myDB.run(...args,function onResult(err){
-				if (err) reject(err);
-				else resolve(this);
-			});
-		});
-	},
-	get: util.promisify(myDB.get.bind(myDB)),
-	all: util.promisify(myDB.all.bind(myDB)),
-	exec: util.promisify(myDB.exec.bind(myDB)),
+  run(...args) {
+    return new Promise(function c(resolve, reject) {
+      myDB.run(...args, function onResult(err) {
+        if (err) reject(err);
+        else resolve(this);
+      });
+    });
+  },
+  get: util.promisify(myDB.get.bind(myDB)),
+  all: util.promisify(myDB.all.bind(myDB)),
+  exec: util.promisify(myDB.exec.bind(myDB)),
 };
 
 // var fileServer = new staticAlias.Server(WEB_PATH,{
@@ -42,15 +42,25 @@ var SQL3 = {
 // 	],
 // });
 
-// var httpserv = http.createServer(handleRequest);
+var httpserv = http.createServer(handleRequest);
 
 main();
-
 
 // ************************************
 
 function main() {
-	// console.log(`Listening on http://localhost:${HTTP_PORT}...`);
+  httpserv.listen(HTTP_PORT);
+  console.log(`Listening on http://localhost:${HTTP_PORT}...`);
+}
+
+async function handleRequest(req, res) {
+  if (req.url == "/hello") {
+    res.writeHead(200, { "Content-Type": "text/plain" });
+    res.end("Hello World");
+  } else {
+    res.writeHead(404);
+    res.end();
+  }
 }
 
 // *************************
@@ -58,8 +68,8 @@ function main() {
 //   comment this version out
 // *************************
 async function getAllRecords() {
-	var result = await SQL3.all(
-		`
+  var result = await SQL3.all(
+    `
 		SELECT
 			Something.data AS "something",
 			Other.data AS "other"
@@ -69,9 +79,9 @@ async function getAllRecords() {
 		ORDER BY
 			Other.id DESC, Something.data
 		`
-	);
+  );
 
-	return result;
+  return result;
 }
 
 // *************************
