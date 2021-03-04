@@ -57,6 +57,15 @@ function defineRoutes() {
     });
     res.end(JSON.stringify(records));
   });
+
+  app.use(
+    express.static(WEB_PATH, {
+      maxAge: 100,
+      setHeaders: function setHeaders(res) {
+        res.setHeader("Server", "Node Workshop: ex6");
+      },
+    })
+  );
   // TODO: define routes
   //
   // Hints:
